@@ -36,6 +36,15 @@ func GetName(pid int) (string, error) {
 	return readComm(pid)
 }
 
+func GetCmdline(pid int) (string, error) {
+	data, err := os.ReadFile(filepath.Join("/proc", strconv.Itoa(pid), "cmdline"))
+	if err != nil {
+		return "", err
+	}
+	// cmdline is null-byte delimited; last byte is also null
+	return strings.ReplaceAll(strings.TrimRight(string(data), "\x00"), "\x00", " "), nil
+}
+
 func readComm(pid int) (string, error) {
 	data, err := os.ReadFile(filepath.Join("/proc", strconv.Itoa(pid), "comm"))
 	if err != nil {

@@ -11,10 +11,12 @@ import (
 )
 
 var (
-	flagAll     bool
-	flagCores   string
-	flagProcess int
-	flagShow    bool
+	flagAll              bool
+	flagCores            string
+	flagProcess          int
+	flagShow             bool
+	flagPidResolution    bool
+	flagShowAllAffinities bool
 )
 
 var rootCmd = &cobra.Command{
@@ -35,6 +37,8 @@ func init() {
 	rootCmd.Flags().StringVarP(&flagCores, "cores", "c", "", "core range, e.g. 0-3 or 0,1,2,3")
 	rootCmd.Flags().IntVarP(&flagProcess, "process", "p", 0, "PID to inspect")
 	rootCmd.Flags().BoolVarP(&flagShow, "show", "s", false, "show CPU usage (-a: percentage, -p: current usage)")
+	rootCmd.Flags().BoolVar(&flagPidResolution, "pid-resolution", false, "show full cmdline instead of process name")
+	rootCmd.Flags().BoolVar(&flagShowAllAffinities, "show-all-affinities", false, "include processes with affinity spanning all cores")
 }
 
 func runRoot(cmd *cobra.Command, args []string) error {

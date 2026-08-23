@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"runtime"
 	"sort"
 	"time"
 
@@ -9,6 +10,8 @@ import (
 )
 
 func runActive() error {
+	numCPU := runtime.NumCPU()
+
 	var coreSet map[int]bool
 	if flagCores != "" {
 		cores, err := parseCores(flagCores)
@@ -29,6 +32,7 @@ func runActive() error {
 	type entry struct {
 		p    proc.Process
 		cpus []int
+		disp string
 	}
 
 	var matching []entry
@@ -38,6 +42,9 @@ func runActive() error {
 			continue
 		}
 		if coreSet != nil {
+			if !flagShowAllAffinities && len(cpus) == numCPU {
+				continue
+			}
 			var found bool
 			for _, c := range cpus {
 				if coreSet[c] {
@@ -49,13 +56,24 @@ func runActive() error {
 				continue
 			}
 		}
-		matching = append(matching, entry{p: p, cpus: cpus})
+		disp := p.Name
+		if flagPidResolution {
+			if cmdline, err := proc.GetCmdline(p.PID); err == nil && cmdline != "" {
+				disp = truncate(cmdline, 40)
+			}
+		}
+		matching = append(matching, entry{p: p, cpus: cpus, disp: disp})
+	}
+
+	nameW, nameHdr := 20, "NAME"
+	if flagPidResolution {
+		nameW, nameHdr = 40, "CMDLINE"
 	}
 
 	if !flagShow {
-		fmt.Printf("%-8s %-20s %s\n", "PID", "NAME", "CPUS")
+		fmt.Printf("%-8s %-*s %s\n", "PID", nameW, nameHdr, "CPUS")
 		for _, e := range matching {
-			fmt.Printf("%-8d %-20s %v\n", e.p.PID, e.p.Name, e.cpus)
+			fmt.Printf("%-8d %-*s %v\n", e.p.PID, nameW, e.disp, e.cpus)
 		}
 		return nil
 	}
@@ -74,9 +92,16 @@ func runActive() error {
 		return pcts[matching[i].p.PID] > pcts[matching[j].p.PID]
 	})
 
-	fmt.Printf("%-8s %-20s %-8s %s\n", "PID", "NAME", "CPU%", "CPUS")
+	fmt.Printf("%-8s %-*s %-8s %s\n", "PID", nameW, nameHdr, "CPU%", "CPUS")
 	for _, e := range matching {
-		fmt.Printf("%-8d %-20s %-8.1f %v\n", e.p.PID, e.p.Name, pcts[e.p.PID], e.cpus)
+		fmt.Printf("%-8d %-*s %-8.1f %v\n", e.p.PID, nameW, e.disp, pcts[e.p.PID], e.cpus)
 	}
 	return nil
+}
+
+func truncate(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	return s[:n-3] + "..."
 }
