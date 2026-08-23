@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"runtime"
 	"sort"
 	"time"
 
@@ -10,7 +9,7 @@ import (
 )
 
 func runActive() error {
-	numCPU := runtime.NumCPU()
+	numCPU := proc.SystemCPUCount()
 
 	var coreSet map[int]bool
 	if flagCores != "" {
