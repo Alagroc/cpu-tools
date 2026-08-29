@@ -8,6 +8,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"cpu-tools/internal/proc"
 )
 
 func runOnload() error {
@@ -55,7 +57,7 @@ func runOnloadFull(bin string) error {
 }
 
 func runOnloadInterrupts(bin string, stack int) error {
-	sample := func() (int64, string, error) {
+	sampleInterrupts := func() (int64, string, error) {
 		out, err := exec.Command("sh", "-c",
 			fmt.Sprintf("%s %d lots | grep -i interrupt", bin, stack)).Output()
 		if err != nil {
@@ -64,23 +66,49 @@ func runOnloadInterrupts(bin string, stack int) error {
 		return sumInts(string(out)), string(out), nil
 	}
 
+	// Parse PIDs attached to this stack from the lots output so we can
+	// correlate interrupt rate with nonvoluntary context switches.
+	stackPIDs := func(bin string, stack int) []int {
+		out, err := exec.Command(bin, strconv.Itoa(stack), "lots").Output()
+		if err != nil {
+			return nil
+		}
+		re := regexp.MustCompile(`(?i)pid[=:\s]+(\d+)`)
+		seen := map[int]bool{}
+		var pids []int
+		for _, m := range re.FindAllStringSubmatch(string(out), -1) {
+			if n, err := strconv.Atoi(m[1]); err == nil && !seen[n] {
+				seen[n] = true
+				pids = append(pids, n)
+			}
+		}
+		return pids
+	}
+
 	fmt.Printf("Sampling interrupts for stack %d...\n\n", stack)
 
-	count1, raw1, err := sample()
+	count1, raw1, err := sampleInterrupts()
 	if err != nil {
 		return err
 	}
-	t1 := time.Now()
-
 	if raw1 == "" {
 		return fmt.Errorf("no interrupt counters found for stack %d", stack)
 	}
 
+	pids := stackPIDs(bin, stack)
+	ctxSwitches1 := map[int]int64{}
+	for _, pid := range pids {
+		if st, err := proc.ReadStatus(pid); err == nil {
+			ctxSwitches1[pid] = st.NonVoluntaryCtxtSwitches
+		}
+	}
+
+	t1 := time.Now()
 	fmt.Printf("=== t0 ===\n%s\n", raw1)
 	fmt.Printf("Waiting 10 seconds...\n\n")
 	time.Sleep(10 * time.Second)
 
-	count2, raw2, err := sample()
+	count2, raw2, err := sampleInterrupts()
 	if err != nil {
 		return err
 	}
@@ -102,6 +130,20 @@ func runOnloadInterrupts(bin string, stack int) error {
 		fmt.Printf("Verdict:  MODERATE — interrupt load is elevated\n")
 	default:
 		fmt.Printf("Verdict:  LOW — interrupt rate is normal\n")
+	}
+
+	if len(pids) > 0 {
+		fmt.Printf("\nNonvoluntary context switches (attached PIDs):\n")
+		for _, pid := range pids {
+			st, err := proc.ReadStatus(pid)
+			if err != nil {
+				continue
+			}
+			d := st.NonVoluntaryCtxtSwitches - ctxSwitches1[pid]
+			name, _ := proc.GetName(pid)
+			fmt.Printf("  PID %-8d %-20s  delta: %d (%.1f/s)\n",
+				pid, name, d, float64(d)/elapsed)
+		}
 	}
 
 	return nil

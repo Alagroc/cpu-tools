@@ -43,7 +43,7 @@ func printHelp(cmd *cobra.Command, _ []string) {
 		{"--interrupts", get("interrupts"), true},
 		{"    --pid-resolution", get("pid-resolution"), false},
 		{"-p, --process int", get("process"), false},
-		{"-s, --show", get("show"), false},
+		{"-s, --stats", get("stats"), false},
 		{"    --show-all-affinities", get("show-all-affinities"), false},
 	}
 

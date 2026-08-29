@@ -14,7 +14,7 @@ var (
 	flagAll               bool
 	flagCores             string
 	flagProcess           int
-	flagShow              bool
+	flagStats             bool
 	flagPidResolution     bool
 	flagShowAllAffinities bool
 	flagOnload            string
@@ -40,7 +40,7 @@ var rootCmd = &cobra.Command{
   # Show full command line instead of process name
   cpu-tools -a -c 0-3 --pid-resolution
 
-  # Inspect a specific process: affinity + live CPU usage
+  # Inspect a specific process: affinity + CPU usage + ctx switches + cgroup pressure
   cpu-tools -p 1234 -s
 
   # Dump all OpenOnload stacks (requires root)
@@ -68,7 +68,7 @@ func init() {
 	rootCmd.Flags().BoolVarP(&flagAll, "all", "a", false, "list processes on selected cores")
 	rootCmd.Flags().StringVarP(&flagCores, "cores", "c", "", "core range, e.g. 0-3 or 0,1,2,3")
 	rootCmd.Flags().IntVarP(&flagProcess, "process", "p", 0, "PID to inspect")
-	rootCmd.Flags().BoolVarP(&flagShow, "show", "s", false, "show CPU usage (-a: percentage, -p: current usage)")
+	rootCmd.Flags().BoolVarP(&flagStats, "stats", "s", false, "show CPU stats (-a: sort by CPU%, -p: usage + ctx switches + cgroup pressure)")
 	rootCmd.Flags().BoolVar(&flagPidResolution, "pid-resolution", false, "show full cmdline instead of process name")
 	rootCmd.Flags().BoolVar(&flagShowAllAffinities, "show-all-affinities", false, "include processes with affinity spanning all cores")
 	rootCmd.Flags().StringVarP(&flagOnload, "onload", "o", "", "dump OpenOnload stacks (requires root); optionally specify stack ID")

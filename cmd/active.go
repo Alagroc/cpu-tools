@@ -69,7 +69,7 @@ func runActive() error {
 		nameW, nameHdr = 40, "CMDLINE"
 	}
 
-	if !flagShow {
+	if !flagStats {
 		fmt.Printf("%-8s %-*s %s\n", "PID", nameW, nameHdr, "CPUS")
 		for _, e := range matching {
 			fmt.Printf("%-8d %-*s %v\n", e.p.PID, nameW, e.disp, e.cpus)

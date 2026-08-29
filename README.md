@@ -1,6 +1,6 @@
 # cpu-tools
 
-Linux CLI for inspecting CPU affinity, usage, and OpenOnload stack state.
+Vibe-coded Linux CLI for inspecting CPU affinity, usage, and OpenOnload stack state.
 
 ## Usage
 
@@ -18,7 +18,7 @@ Flags:
         --interrupts           analyse interrupt rate for --onload STACK (10s sample)
       --pid-resolution         show full cmdline instead of process name
   -p, --process int            PID to inspect
-  -s, --show                   show CPU usage (-a: percentage, -p: current usage)
+  -s, --stats                  show CPU stats (-a: sort by CPU%, -p: usage + ctx switches + cgroup pressure)
       --show-all-affinities    include processes with affinity spanning all cores
 ```
 
@@ -44,7 +44,7 @@ Show full command line instead of process name:
 cpu-tools -a -c 0-3 --pid-resolution
 ```
 
-Show affinity and current CPU usage for a process:
+Show affinity, CPU usage, context switches, and cgroup pressure for a process:
 ```
 cpu-tools -p <PID> -s
 ```
