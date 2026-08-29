@@ -22,7 +22,21 @@ var (
 var rootCmd = &cobra.Command{
 	Use:   "cpu-tools",
 	Short: "CPU inspection utilities",
-	RunE:  runRoot,
+	Example: `  # List processes pinned to cores 0-3 (excludes full-affinity processes)
+  cpu-tools -a -c 0-3
+
+  # Same, sorted by CPU% (samples over 500ms)
+  cpu-tools -a -c 0-3 -s
+
+  # Include processes that can run on any core
+  cpu-tools -a -c 0-3 --show-all-affinities
+
+  # Show full command line instead of process name
+  cpu-tools -a -c 0-3 --pid-resolution
+
+  # Inspect a specific process: affinity + live CPU usage
+  cpu-tools -p 1234 -s`,
+	RunE: runRoot,
 }
 
 func Execute() {
