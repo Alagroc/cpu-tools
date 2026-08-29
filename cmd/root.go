@@ -52,7 +52,7 @@ var rootCmd = &cobra.Command{
   # Analyse interrupt rate on onload stack 1 (10s sample)
   sudo cpu-tools --onload=1 --interrupts
 
-  # Show non-zero error counters on onload stack 1 (stats, vi_stats, tcp_stats, udp_stats)
+  # Show non-zero error counters on onload stack 1 (stats, more_stats, vi_stats, tcp_stats, udp_stats)
   sudo cpu-tools --onload=1 --errors`,
 	RunE: runRoot,
 }
@@ -75,7 +75,7 @@ func init() {
 	rootCmd.Flags().Lookup("onload").NoOptDefVal = "all"
 	rootCmd.Flags().BoolVar(&flagInterrupts, "interrupts", false, "analyse interrupt rate for --onload=STACK (10s sample)")
 	rootCmd.Flags().BoolVar(&flagConnections, "connections", false, "list ESTABLISHED connections for --onload=STACK")
-	rootCmd.Flags().BoolVar(&flagErrors, "errors", false, "show non-zero error counters for --onload=STACK (stats + vi_stats)")
+	rootCmd.Flags().BoolVar(&flagErrors, "errors", false, "show non-zero error counters for --onload=STACK (stats, more_stats, vi_stats, tcp_stats, udp_stats)")
 }
 
 func runRoot(cmd *cobra.Command, args []string) error {

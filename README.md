@@ -63,7 +63,7 @@ Analyse interrupt rate on onload stack 1 (samples over 10s, shows rate and verdi
 sudo cpu-tools --onload=1 --interrupts
 ```
 
-Show non-zero error counters on onload stack 1 (checks stats, vi_stats, tcp_stats, udp_stats):
+Show non-zero error counters on onload stack 1 (checks stats, more_stats, vi_stats, tcp_stats, udp_stats):
 ```
 sudo cpu-tools --onload=1 --errors
 ```
