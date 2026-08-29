@@ -17,7 +17,10 @@ var (
 	flagShow              bool
 	flagPidResolution     bool
 	flagShowAllAffinities bool
-	flagOnload            bool
+	flagOnload            string
+	flagInterrupts        bool
+	flagConnections       bool
+	flagErrors            bool
 )
 
 var rootCmd = &cobra.Command{
@@ -38,7 +41,19 @@ var rootCmd = &cobra.Command{
   cpu-tools -a -c 0-3 --pid-resolution
 
   # Inspect a specific process: affinity + live CPU usage
-  cpu-tools -p 1234 -s`,
+  cpu-tools -p 1234 -s
+
+  # Dump all OpenOnload stacks (requires root)
+  sudo cpu-tools --onload
+
+  # List ESTABLISHED connections on onload stack 1
+  sudo cpu-tools --onload=1 --connections
+
+  # Analyse interrupt rate on onload stack 1 (10s sample)
+  sudo cpu-tools --onload=1 --interrupts
+
+  # Show non-zero error counters on onload stack 1 (stats, vi_stats, tcp_stats, udp_stats)
+  sudo cpu-tools --onload=1 --errors`,
 	RunE: runRoot,
 }
 
@@ -56,12 +71,16 @@ func init() {
 	rootCmd.Flags().BoolVarP(&flagShow, "show", "s", false, "show CPU usage (-a: percentage, -p: current usage)")
 	rootCmd.Flags().BoolVar(&flagPidResolution, "pid-resolution", false, "show full cmdline instead of process name")
 	rootCmd.Flags().BoolVar(&flagShowAllAffinities, "show-all-affinities", false, "include processes with affinity spanning all cores")
-	rootCmd.Flags().BoolVar(&flagOnload, "onload", false, "dump OpenOnload stack state (requires root)")
+	rootCmd.Flags().StringVar(&flagOnload, "onload", "", "dump OpenOnload stacks (requires root); optionally specify stack ID")
+	rootCmd.Flags().Lookup("onload").NoOptDefVal = "all"
+	rootCmd.Flags().BoolVar(&flagInterrupts, "interrupts", false, "analyse interrupt rate for --onload=STACK (10s sample)")
+	rootCmd.Flags().BoolVar(&flagConnections, "connections", false, "list ESTABLISHED connections for --onload=STACK")
+	rootCmd.Flags().BoolVar(&flagErrors, "errors", false, "show non-zero error counters for --onload=STACK (stats + vi_stats)")
 }
 
 func runRoot(cmd *cobra.Command, args []string) error {
 	switch {
-	case flagOnload:
+	case flagOnload != "":
 		return runOnload()
 	case flagAll:
 		return runActive()
