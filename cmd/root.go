@@ -11,17 +11,20 @@ import (
 )
 
 var (
-	flagAll              bool
-	flagCores            string
-	flagProcess          int
-	flagShow             bool
-	flagPidResolution    bool
+	flagAll               bool
+	flagCores             string
+	flagProcess           int
+	flagShow              bool
+	flagPidResolution     bool
 	flagShowAllAffinities bool
+	flagOnload            bool
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "cpu-tools",
-	Short: "CPU inspection utilities",
+	Use:          "cpu-tools",
+	Short:        "CPU inspection utilities",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	Example: `  # List processes pinned to cores 0-3 (excludes full-affinity processes)
   cpu-tools -a -c 0-3
 
@@ -53,10 +56,13 @@ func init() {
 	rootCmd.Flags().BoolVarP(&flagShow, "show", "s", false, "show CPU usage (-a: percentage, -p: current usage)")
 	rootCmd.Flags().BoolVar(&flagPidResolution, "pid-resolution", false, "show full cmdline instead of process name")
 	rootCmd.Flags().BoolVar(&flagShowAllAffinities, "show-all-affinities", false, "include processes with affinity spanning all cores")
+	rootCmd.Flags().BoolVar(&flagOnload, "onload", false, "dump OpenOnload stack state (requires root)")
 }
 
 func runRoot(cmd *cobra.Command, args []string) error {
 	switch {
+	case flagOnload:
+		return runOnload()
 	case flagAll:
 		return runActive()
 	case flagProcess > 0:
