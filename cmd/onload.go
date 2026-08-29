@@ -140,9 +140,10 @@ func runOnloadErrors(bin string, stack int) error {
 	sources := []source{
 		{"Stack stats", "stats"},
 		{"More stats", "more_stats"},
-		{"VI stats", "vi_stats"},
-		{"TCP stats", "tcp_stats"},
-		{"UDP stats", "udp_stats"},
+		{"VI stats",   "vi_stats"},
+		{"IP stats",   "ip_stats"},
+		{"TCP stats",  "tcp_stats"},
+		{"UDP stats",  "udp_stats"},
 	}
 
 	totalErrors := 0

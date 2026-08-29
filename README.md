@@ -8,17 +8,18 @@ Linux CLI for inspecting CPU affinity, usage, and OpenOnload stack state.
 cpu-tools [flags]
 
 Flags:
-  -a, --all                   list processes on selected cores
-  -c, --cores string          core range, e.g. 0-3 or 0,1,2,3
-  -p, --process int           PID to inspect
-  -s, --show                  show CPU usage (-a: percentage, -p: current usage)
-      --pid-resolution        show full cmdline instead of process name
-      --show-all-affinities   include processes with affinity spanning all cores
-      --onload[=STACK]        dump OpenOnload stack state (requires root)
-      --interrupts            analyse interrupt rate for --onload=STACK (10s sample)
-      --connections           list ESTABLISHED connections for --onload=STACK
-      --errors                show non-zero error counters for --onload=STACK
-  -h, --help                  help for cpu-tools
+  -a, --all                    list processes on selected cores
+  -c, --cores string           core range, e.g. 0-3 or 0,1,2,3
+  -h, --help                   help for cpu-tools
+  -o, --onload [STACK]         dump OpenOnload stacks (requires root)
+        --connections          list ESTABLISHED connections for --onload STACK
+        --errors               show non-zero error counters for --onload STACK
+                                 (stats, more_stats, vi_stats, ip_stats, tcp_stats, udp_stats)
+        --interrupts           analyse interrupt rate for --onload STACK (10s sample)
+      --pid-resolution         show full cmdline instead of process name
+  -p, --process int            PID to inspect
+  -s, --show                   show CPU usage (-a: percentage, -p: current usage)
+      --show-all-affinities    include processes with affinity spanning all cores
 ```
 
 ## Examples
@@ -50,22 +51,22 @@ cpu-tools -p <PID> -s
 
 Dump all OpenOnload stacks:
 ```
-sudo cpu-tools --onload
+sudo cpu-tools -o
 ```
 
 List ESTABLISHED connections on onload stack 1:
 ```
-sudo cpu-tools --onload=1 --connections
+sudo cpu-tools -o 1 --connections
 ```
 
 Analyse interrupt rate on onload stack 1 (samples over 10s, shows rate and verdict):
 ```
-sudo cpu-tools --onload=1 --interrupts
+sudo cpu-tools -o 1 --interrupts
 ```
 
-Show non-zero error counters on onload stack 1 (checks stats, more_stats, vi_stats, tcp_stats, udp_stats):
+Show non-zero error counters on onload stack 1:
 ```
-sudo cpu-tools --onload=1 --errors
+sudo cpu-tools -o 1 --errors
 ```
 
 ## Build

@@ -47,13 +47,13 @@ var rootCmd = &cobra.Command{
   sudo cpu-tools --onload
 
   # List ESTABLISHED connections on onload stack 1
-  sudo cpu-tools --onload=1 --connections
+  sudo cpu-tools -o 1 --connections
 
   # Analyse interrupt rate on onload stack 1 (10s sample)
-  sudo cpu-tools --onload=1 --interrupts
+  sudo cpu-tools -o 1 --interrupts
 
-  # Show non-zero error counters on onload stack 1 (stats, more_stats, vi_stats, tcp_stats, udp_stats)
-  sudo cpu-tools --onload=1 --errors`,
+  # Show non-zero error counters on onload stack 1 (stats, more_stats, vi_stats, ip_stats, tcp_stats, udp_stats)
+  sudo cpu-tools -o 1 --errors`,
 	RunE: runRoot,
 }
 
@@ -71,16 +71,20 @@ func init() {
 	rootCmd.Flags().BoolVarP(&flagShow, "show", "s", false, "show CPU usage (-a: percentage, -p: current usage)")
 	rootCmd.Flags().BoolVar(&flagPidResolution, "pid-resolution", false, "show full cmdline instead of process name")
 	rootCmd.Flags().BoolVar(&flagShowAllAffinities, "show-all-affinities", false, "include processes with affinity spanning all cores")
-	rootCmd.Flags().StringVar(&flagOnload, "onload", "", "dump OpenOnload stacks (requires root); optionally specify stack ID")
+	rootCmd.Flags().StringVarP(&flagOnload, "onload", "o", "", "dump OpenOnload stacks (requires root); optionally specify stack ID")
 	rootCmd.Flags().Lookup("onload").NoOptDefVal = "all"
-	rootCmd.Flags().BoolVar(&flagInterrupts, "interrupts", false, "analyse interrupt rate for --onload=STACK (10s sample)")
-	rootCmd.Flags().BoolVar(&flagConnections, "connections", false, "list ESTABLISHED connections for --onload=STACK")
-	rootCmd.Flags().BoolVar(&flagErrors, "errors", false, "show non-zero error counters for --onload=STACK (stats, more_stats, vi_stats, tcp_stats, udp_stats)")
+	rootCmd.Flags().BoolVar(&flagInterrupts, "interrupts", false, "analyse interrupt rate for --onload STACK (10s sample)")
+	rootCmd.Flags().BoolVar(&flagConnections, "connections", false, "list ESTABLISHED connections for --onload STACK")
+	rootCmd.Flags().BoolVar(&flagErrors, "errors", false, "show non-zero error counters for --onload STACK (stats, more_stats, vi_stats, ip_stats, tcp_stats, udp_stats)")
 }
 
 func runRoot(cmd *cobra.Command, args []string) error {
 	switch {
 	case flagOnload != "":
+		// Allow "cpu-tools -o 1 --errors" where the stack ID is a positional arg.
+		if flagOnload == "all" && len(args) > 0 {
+			flagOnload = args[0]
+		}
 		return runOnload()
 	case flagAll:
 		return runActive()
